@@ -30,10 +30,13 @@ input[type=checkbox]{width:30px;height:30px;margin:0 10px 0 0;vertical-align:mid
 <main id="m"></main><div id="ts"></div>
 <script>
 const K='verdu1',U=['kg','unidad','cabeza','atado','docena','bolsa','otro'],$=s=>document.querySelector(s);
-let db={products:[],combos:[],moves:[],sales:[],exp:[],biz:{name:'Mi Verdulería',wa:''}},CT={},CB={},BG=null,CV=null,ST='load',PI;
+let db=loadDB(),CT={},CB={},BG=null,CV=null,ST='ok',PI;
 function seedProducts(){return[['Tomate Santa Cruz',5000,'🍅'],['Papa',6000,'🥔'],['Cebolla',6000,'🧅'],['Zanahoria',3500,'🥕'],['Locote verde',7000,'🫑'],['Ajo',12000,'🧄'],['Queso Paraguay',35000,'🧀']].map((p,i)=>({id:'p'+i,name:p[0],unit:'kg',cost:p[1],mk:40,price:Math.round(p[1]*1.4/500)*500,min:3,e:p[2]}))}
 function reprice(){db.products.forEach(p=>{p.mk=mkOf(p);p.price=rnd(p.cost*(1+p.mk/100))});db.combos.forEach(c=>{const k=ccost(c);c.mk=mkOf(c,k);c.price=rnd(k*(1+c.mk/100))})}
-function save(){window.cloudSave&&cloudSave()}
+function loadDB(){const d={products:[],combos:[],moves:[],sales:[],exp:[],biz:{name:'Mi Verdulería',wa:'',mk:40,round:500}};
+try{const o=JSON.parse(localStorage.getItem(K));if(o&&o.products)return Object.assign(d,o)}catch(e){}
+d.products=seedProducts();return d}
+function save(){try{localStorage.setItem(K,JSON.stringify(db))}catch(e){alert('No hay espacio para guardar. Exportá tus datos y sacá fotos más chicas.')}}
 const loginHTML=()=>`<div class=c><label>Email</label><input id=le type=email autocapitalize=off><label>Contraseña</label><input id=lp type=password></div><button class=btn onclick="doLogin()">INGRESAR</button><div id=lerr class=bad></div>`;
 const id=()=>'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),P=i=>db.products.find(p=>p.id==i),C=i=>db.combos.find(c=>c.id==i);
 const g=n=>'Gs. '+String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.'),q=n=>String(Math.round(n*100)/100).replace('.',',');
@@ -94,7 +97,7 @@ pub:()=>['📱 Publicar',`<div class=c><b>Elegí qué publicar:</b><br>${db.prod
 <div class=c><label>Título</label><input id=hd value="OFERTAS DE HOY"><label>Para</label><select id=fm><option value=wa>WhatsApp (historia)<option value=ig>Instagram (cuadrada)<option value=fb>Facebook (horizontal)</select><label>Foto de fondo (opcional)</label><input type=file accept="image/*" onchange="bg(this)"></div>
 <button class=btn onclick="mk()">🖼️ CREAR PUBLICACIÓN</button><div id=out></div>`],
 cfg:()=>['⚙️ Mi negocio',`<div class=c><label>Nombre del negocio</label><input id=bn value="${esc(db.biz.name)}"><label>WhatsApp (opcional)</label><input id=bw inputmode=tel value="${esc(db.biz.wa)}"><label>Ganancia habitual (%)</label><input id=bk inputmode=decimal value="${db.biz.mk??40}"><label>Redondear precios a (Gs.)</label><select id=br>${[100,500,1000].map(r=>`<option ${(db.biz.round||500)==r?'selected':''}>${r}`).join('')}</select><button class=btn onclick="saveB()">GUARDAR</button></div>
-<button class=btn onclick="exp()">📤 EXPORTAR DATOS</button><label class="btn w">📥 IMPORTAR DATOS<input type=file accept=".json,application/json" hidden onchange="imp(this)"></label><button class="btn w" onclick="expC()">📊 Ventas para Excel</button><div class=c><small>Hacé una copia seguido: tocá EXPORTAR y mandátela por WhatsApp o mail.</small></div><button class="btn w" style="font-size:18px;padding:12px" onclick="cloudOut()">Cerrar sesión</button>`]};
+<button class=btn onclick="exp()">📤 EXPORTAR DATOS</button><label class="btn w">📥 IMPORTAR DATOS<input type=file accept=".json,application/json" hidden onchange="imp(this)"></label><button class="btn w" onclick="expC()">📊 Ventas para Excel</button><div class=c><small>Hacé una copia seguido: tocá EXPORTAR y mandátela por WhatsApp o mail.</small></div>`]};
 function cp(){const a=S[S.length-1].a;if(a.k!='compra')return;const p=P(a.id),n=num($('#q').value),t=mon($('#c').value);if(!(n&&t)){$('#cp').textContent='';return}const nc=newCost(p,n,t);$('#cp').innerHTML='Esta compra: '+g(t/n)+' por '+p.unit+'<br>Costo promedio: '+g(nc)+'<br>Precio de venta: <b>'+g(rnd(nc*(1+mkOf(p)/100)))+'</b> (ganancia '+mkOf(p)+'%)'}
 function upd(){const c=mon($('#c').value),k=num($('#k').value),p=rnd(c*(1+k/100));$('#gn').innerHTML=c?'Precio de venta: <b>'+g(p)+'</b><br>Ganancia: '+g(p-c)+' ('+q((p-c)/c*100)+'%)':''}
 function doMov(pid,k){const p=P(pid),n=num($('#q').value);if(n<=0)return alert('Escribí la cantidad');
@@ -119,7 +122,7 @@ function rp(x,a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);
 const th=o=>o.img?`<img src="${o.img}" style="width:44px;height:44px;object-fit:cover;border-radius:8px;vertical-align:middle;margin-right:8px">`:'',
 LI=s=>new Promise(r=>{if(!s)return r(null);const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=s}),
 PER={kg:'el kg',unidad:'la unidad',cabeza:'la cabeza',atado:'el atado',docena:'la docena',bolsa:'la bolsa',otro:'c/u'};
-function shrink(f,cb){const im=new Image();im.onload=()=>{const s=Math.min(1,480/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.72))};im.src=URL.createObjectURL(f)}
+function shrink(f,cb){const im=new Image();im.onload=()=>{const s=Math.min(1,400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;c.getContext('2d').drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.72))};im.src=URL.createObjectURL(f)}
 function pickP(el){const f=el.files[0];if(f)shrink(f,d=>{PI=d;$('#pv').innerHTML=`<img src="${d}" style="width:120px;border-radius:10px">`})}
 function pickC(el){const f=el.files[0];if(f)shrink(f,d=>{CB.img=d;draw()})}
 async function mk(){const sel=[...document.querySelectorAll('.pk:checked')].map(i=>i.value).slice(0,6);if(!sel.length)return alert('Elegí al menos un producto');
@@ -133,7 +136,7 @@ x.textAlign='center';x.fillStyle='#fff';fit(db.biz.name,800,m*.085,w*.9);x.fillT
 const T0=m*.26,A=h-T0-m*.17,n=it.length;
 if(n==1){const i=it[0],ph=i.im?Math.min(A*.52,w*.8):0;if(i.im)pic(i.im,(w-ph)/2,T0,ph,m*.04);const ny=i.im?T0+ph+m*.11:T0+A*.38;
 x.fillStyle='#fff';fit(i.n,800,m*.095,w*.9);x.fillText(i.n,w/2,ny);x.fillStyle='#ffeb3b';fit(i.pr,900,m*.14,w*.92);x.fillText(i.pr,w/2,ny+m*(i.im?.15:.2))}
-else{const rh=Math.min(A/n,m*.2),y0=T0+(A-rh*n)/2;it.forEach((i,k)=>{const y=y0+k*rh,ox=m*.09+(i.im?rh*.9:0),mw=w-m*.09-ox;x.fillStyle='rgba(255,255,255,.96)';rp(x,m*.05,y+rh*.06,w-m*.1,rh*.88,rh*.2);x.fill();
+else{const rh=Math.min(A/n,m*(n<=3?.3:.2)),y0=T0+(A-rh*n)/2;it.forEach((i,k)=>{const y=y0+k*rh,ox=m*.09+(i.im?rh*.9:0),mw=w-m*.09-ox;x.fillStyle='rgba(255,255,255,.96)';rp(x,m*.05,y+rh*.06,w-m*.1,rh*.88,rh*.2);x.fill();
 if(i.im)pic(i.im,m*.08,y+rh*.1,rh*.8,rh*.12);x.textAlign='left';x.fillStyle='#14341a';fit(i.n,800,rh*.28,mw);x.fillText(i.n,ox,y+rh*.46);x.fillStyle='#c62828';fit(i.pr,800,rh*.32,mw);x.fillText(i.pr,ox,y+rh*.82)})}
 x.textAlign='center';x.fillStyle='#fff';fit(db.biz.wa?'Pedidos por WhatsApp: '+db.biz.wa:'Pedidos por WhatsApp',700,m*.05,w*.92);x.fillText(db.biz.wa?'Pedidos por WhatsApp: '+db.biz.wa:'Pedidos por WhatsApp',w/2,h-m*.06);
 CV=cv;const url=cv.toDataURL('image/png');$('#out').innerHTML=`<img src="${url}" style="width:100%;border-radius:12px;margin-bottom:12px"><button class=btn onclick="shr()">📤 COMPARTIR</button><a class="btn w" download="publicacion.png" href="${url}">⬇️ DESCARGAR</a><small>Si no baja, mantené apretada la imagen y tocá "Guardar".</small>`}
@@ -142,35 +145,9 @@ function saveB(){db.biz={name:$('#bn').value.trim()||'Mi Verdulería',wa:$('#bw'
 function dl(name,txt,type){const b=new Blob([txt],{type}),f=new File([b],name,{type});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click()}}
 function exp(){dl('verduleria-'+T()+'.json',JSON.stringify(db),'application/json')}
 function expC(){const r=['Fecha;Hora;Detalle;Total;Costo;Ganancia'];db.sales.forEach(s=>r.push([dmy(day(s.t)),hm(s.t),'"'+s.items.map(i=>q(i.q)+' '+i.u+' '+i.n).join(', ')+'"',Math.round(s.total),Math.round(s.cost),Math.round(s.total-s.cost)].join(';')));dl('ventas-'+T()+'.csv','\uFEFF'+r.join('\n'),'text/csv')}
-function imp(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.products||!d.moves)throw 0;if(!confirm('Esto reemplaza todos los datos actuales. ¿Seguir?'))return;db=Object.assign({products:[],combos:[],moves:[],sales:[],exp:[],biz:{name:'Mi Verdulería',wa:''}},d);save();S.length=1;draw();toast('✅ Datos importados')}catch(e){alert('Ese archivo no es una copia válida.')}};r.readAsText(f)}
+function imp(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.products||!d.moves)throw 0;if(!confirm('Esto reemplaza todos los datos actuales. ¿Seguir?'))return;db=Object.assign({products:[],combos:[],moves:[],sales:[],exp:[],biz:{name:'Mi Verdulería',wa:'',mk:40,round:500}},d);save();S.length=1;draw();toast('✅ Datos importados')}catch(e){alert('Ese archivo no es una copia válida.')}};r.readAsText(f)}
 (function(){const c=document.createElement('canvas');c.width=c.height=180;const x=c.getContext('2d');x.fillStyle='#1b5e20';x.fillRect(0,0,180,180);x.font='110px serif';x.textAlign='center';x.fillText('🥬',90,128);$('#ati').href=c.toDataURL()})();
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 draw();
-</script><script type="module">
-import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,onSnapshot,setDoc,writeBatch} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-import {firebaseConfig as cfg} from './config.js';
-const COLS=['products','combos','moves','sales','exp'],sh={products:{},combos:{},moves:{},sales:{},exp:{}},LIVE=['home','stock','prod','prec','vta','hv','res'];
-let shBiz='',fs,au,listening=false,seeding=false;
-if(!cfg.apiKey||cfg.apiKey.startsWith('PEGAR')){ST='nocfg';draw()}else{
-const app=initializeApp(cfg);fs=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});au=getAuth(app);
-onAuthStateChanged(au,u=>{if(u){if(!listening){listening=true;listen()}}else{ST='login';draw()}})}
-function refresh(){if(ST=='ok'&&LIVE.includes(S[S.length-1].v))draw()}
-function listen(){let got=0;const seen={},done=k=>{if(!seen[k]){seen[k]=1;if(++got==6){ST='ok';draw()}}};
-COLS.forEach(c=>onSnapshot(collection(fs,c),s=>{db[c]=s.docs.map(d=>d.data());sh[c]={};db[c].forEach(x=>sh[c][x.id]=JSON.stringify(x));done(c);refresh()},e=>alert('Error de Firebase: '+e.code)));
-onSnapshot(collection(fs,'cfg'),s=>{const m={};s.docs.forEach(d=>m[d.id]=d.data());if(m.biz){db.biz=m.biz;shBiz=JSON.stringify(m.biz)}
-if(!m.meta&&!s.metadata.fromCache&&!seeding){seeding=true;seed()}done('cfg');refresh()})}
-function seed(){let o;try{o=JSON.parse(localStorage.getItem('verdu1'))}catch(e){}
-if(o&&o.products)Object.assign(db,{products:o.products,combos:o.combos||[],moves:o.moves||[],sales:o.sales||[],exp:o.exp||[],biz:o.biz||db.biz});else db.products=seedProducts();
-setDoc(doc(fs,'cfg','meta'),{seeded:true});cloudSave()}
-window.cloudSave=()=>{const ops=[];COLS.forEach(c=>{const cur={};db[c].forEach(x=>cur[x.id]=JSON.stringify(x));
-for(const i in cur)if(sh[c][i]!==cur[i]){ops.push([c,i,JSON.parse(cur[i])]);sh[c][i]=cur[i]}
-for(const i in sh[c])if(!(i in cur)){ops.push([c,i,null]);delete sh[c][i]}});
-const b=JSON.stringify(db.biz);if(b!==shBiz){ops.push(['cfg','biz',db.biz]);shBiz=b}
-for(let k=0;k<ops.length;k+=400){const w=writeBatch(fs);ops.slice(k,k+400).forEach(([c,i,v])=>v?w.set(doc(fs,c,i),v):w.delete(doc(fs,c,i)));w.commit().catch(e=>{console.error(e);alert('No se pudo guardar en la nube: '+e.code)})}};
-window.doLogin=async()=>{try{await signInWithEmailAndPassword(au,$('#le').value.trim(),$('#lp').value)}catch(e){$('#lerr').textContent=e.code=='auth/network-request-failed'?'Sin internet':'Email o contraseña incorrectos'}};
-window.cloudOut=()=>confirm('¿Cerrar sesión?')&&signOut(au).then(()=>location.reload());
-</script>
-</body></html>
+</script></body></html>

@@ -26,17 +26,20 @@ input[type=checkbox]{width:30px;height:30px;margin:0 10px 0 0;vertical-align:mid
 #ts{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#000d;color:#fff;padding:14px 22px;border-radius:30px;font-size:21px;display:none;z-index:9}
 .row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee}.tot{font-weight:800;font-size:24px}
 </style></head><body>
-<header><button id="bk" onclick="back()" hidden>← Volver</button><b id="t"></b></header>
+<header><button id="bk" onclick="back()" hidden>← Volver</button><b id="t"></b><small id="sy" style="font-size:14px"></small></header>
 <main id="m"></main><div id="ts"></div>
 <script>
 const K='verdu1',U=['kg','unidad','cabeza','atado','mazo','docena','bolsa','caja','cajón','otro'],$=s=>document.querySelector(s);
 let db=loadDB(),CT={},CB={},BG=null,CV=null,ST='ok',PI;
 function seedProducts(){return[['Tomate Santa Cruz',5000,'🍅'],['Papa',6000,'🥔'],['Cebolla',6000,'🧅'],['Zanahoria',3500,'🥕'],['Locote verde',7000,'🫑'],['Ajo',12000,'🧄'],['Queso Paraguay',35000,'🧀']].map((p,i)=>({id:'p'+i,name:p[0],unit:'kg',cost:p[1],mk:40,price:Math.round(p[1]*1.4/500)*500,min:3,e:p[2]}))}
-function reprice(){db.products.forEach(p=>{p.mk=mkOf(p);p.price=rnd(p.cost*(1+p.mk/100))});db.combos.forEach(c=>{const k=ccost(c);c.mk=mkOf(c,k);c.price=rnd(k*(1+c.mk/100))})}
+function recost(p){const L=db.moves.filter(m=>m.pid==p.id).sort((a,b)=>a.t-b.t);let s=0,c=null;L.forEach(m=>{if(m.k=='compra'){const s0=Math.max(s,0);c=(s0*(c??m.cost)+m.q*m.cost)/(s0+m.q)}s+=m.q});if(c!==null)p.cost=c}
+function reprice(){db.products.sort(srt);db.products.forEach(p=>{p.mk=mkOf(p);p.price=rnd(p.cost*(1+p.mk/100))});db.combos.forEach(c=>{const k=ccost(c);c.mk=mkOf(c,k);c.price=rnd(k*(1+c.mk/100))})}
 function loadDB(){const d={products:[],combos:[],moves:[],sales:[],exp:[],biz:{name:'Mi Verdulería',wa:'',mk:40,round:500}};
-try{const o=JSON.parse(localStorage.getItem(K));if(o&&o.products)return Object.assign(d,o)}catch(e){}
+try{const o=JSON.parse(localStorage.getItem(K));if(o&&o.products){Object.assign(d,o);d.products.sort((a,b)=>a.name.localeCompare(b.name,'es'));return d}}catch(e){}
 d.products=seedProducts();return d}
-function save(){try{localStorage.setItem(K,JSON.stringify(db))}catch(e){alert('No hay espacio para guardar. Exportá tus datos y sacá fotos más chicas.')}}
+const srt=(a,b)=>a.name.localeCompare(b.name,'es');
+function localStore(){try{localStorage.setItem(K,JSON.stringify(db))}catch(e){alert('No hay espacio para guardar. Exportá tus datos y sacá fotos más chicas.')}}
+function save(){localStore();window.cloudSave&&cloudSave()}
 const loginHTML=()=>`<div class=c><label>Email</label><input id=le type=email autocapitalize=off><label>Contraseña</label><input id=lp type=password></div><button class=btn onclick="doLogin()">INGRESAR</button><div id=lerr class=bad></div>`;
 const id=()=>'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),P=i=>db.products.find(p=>p.id==i),C=i=>db.combos.find(c=>c.id==i);
 const g=n=>'Gs. '+String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,'.'),q=n=>String(Math.round(n*100)/100).replace('.',',');
@@ -58,7 +61,7 @@ db.sales.push({id:sid,t,items,total:tot,cost});save()}
 const S=[{v:'home',a:{}}];
 function go(v,a){if(v=='edit')PI=undefined;S.push({v,a:a||{}});draw();scrollTo(0,0)}
 function back(){if(S.length>1)S.pop();draw()}
-function draw(){if(ST!='ok'){$('#t').textContent='🥬 Mi Verdulería';$('#bk').hidden=true;$('#m').innerHTML=ST=='load'?'<div class=c>Cargando…</div>':ST=='nocfg'?'<div class=c>Falta pegar los datos de Firebase en el archivo config.js</div>':loginHTML();return}const s=S[S.length-1],[t,h]=VW[s.v](s.a);$('#t').textContent=t;$('#m').innerHTML=h;$('#bk').hidden=S.length<2;if($('#gn'))upd()}
+function draw(){const s=S[S.length-1];let r;try{r=VW[s.v](s.a)}catch(e){console.error(e);if(S.length>1){S.length=1;return draw()}r=['Error','<div class=c>Hubo un problema. Cerrá y abrí la app.</div>']}$('#t').textContent=r[0];$('#m').innerHTML=r[1];$('#bk').hidden=S.length<2;if($('#gn'))upd()}
 const VW={
 home:()=>{const r=sum('hoy');return['🥬 '+db.biz.name,`<div class=c onclick="go('res')"><div>Stock bajo: <b class="${db.products.filter(low).length?'bad':''}">${db.products.filter(low).length} productos</b></div><div>Ventas de hoy: <b>${g(r.v)}</b></div><div>Ganancia de hoy: <b class=ok>${g(r.net)}</b></div><small>Tocá para ver el resumen</small></div>
 <div class=grid><button class=btn onclick="go('stock')">📦<br>STOCK</button><button class=btn onclick="go('prec')">💰<br>PRECIOS</button><button class=btn onclick="go('vta')">🧾<br>VENTAS</button><button class=btn onclick="go('gas')">💸<br>GASTOS</button><button class="btn o full" onclick="go('pub')">📱 PUBLICAR</button></div>
@@ -69,13 +72,17 @@ m.forEach(x=>G[L(x)]=(G[L(x)]||0)+x.q);
 return[p.name,`<div class=c>Stock actual<div class=big>${q(st(p.id))} ${p.unit}</div></div>
 <button class=btn onclick="go('mov',{id:'${p.id}',k:'compra'})">➕ ENTRADA</button><button class="btn o" onclick="go('mov',{id:'${p.id}',k:'venta'})">🧾 SALIDA (venta)</button><button class="btn r" onclick="go('mov',{id:'${p.id}',k:'perdida'})">⚠️ PÉRDIDA</button>
 <div class=c><b>Resumen</b>${Object.keys(G).map(l=>`<div class=row><span>${l}</span><b>${G[l]>0?'+':''}${q(G[l])} ${p.unit}</b></div>`).join('')||'<div>Sin movimientos</div>'}</div>
-<div class=c><b>Movimientos</b>${m.slice(0,40).map(x=>`<div class=row><span>${x.q>0?'+':''}${q(x.q)} ${p.unit} — ${L(x)}${x.bq&&x.bu!=p.unit?' ('+q(x.bq)+' '+x.bu+')':''}</span><small>${dmy(day(x.t))}</small></div>`).join('')}</div>`]},
+<div class=c><b>Movimientos</b> <small>(tocá uno para corregirlo)</small>${m.slice(0,40).map(x=>`<div class=row onclick="go('mvd',{id:'${x.id}'})"><span>${x.q>0?'+':''}${q(x.q)} ${p.unit} — ${L(x)}${x.bq&&x.bu!=p.unit?' ('+q(x.bq)+' '+x.bu+')':''}</span><small>${dmy(day(x.t))} ›</small></div>`).join('')}</div>`]},
 mov:a=>{const p=P(a.id),k=a.k,bu=p.bu||p.unit;return[{compra:'➕ Entrada',venta:'🧾 Salida',perdida:'⚠️ Pérdida'}[k]+' — '+p.name,`<div class=c>
 ${k=='compra'?`<label>Compré en</label><select id=bu onchange="mvu()">${[bu,...U.filter(u=>u!=bu)].map(u=>`<option ${u==bu?'selected':''}>${u}`).join('')}</select>`:''}
 <label id=lq>¿Cuántos ${k=='compra'?bu:p.unit}?</label><input id=q inputmode=decimal placeholder="0" oninput="cp()">
 ${k=='compra'?`<div id=fr style="display:${bu==p.unit?'none':'block'}"><label id=lf>¿Cuántos ${p.unit} trae cada ${bu}?</label><input id=f inputmode=decimal value="${fx(p,bu)}" oninput="cp()"></div><label>Costo total pagado (Gs.)</label><input id=c inputmode=numeric placeholder="100000" oninput="cp()"><div id=cp class=ok style="font-weight:700"></div>`:''}
 ${k=='perdida'?'<label>Motivo</label><select id=w><option>Consumo familiar<option>Merma<option>Producto dañado<option>Regalo<option>Otro</select>':''}
 ${k=='venta'?`<div>Se vende a <b>${g(p.price)}</b> por ${p.unit}</div>`:''}</div><button class=btn onclick="doMov('${p.id}','${k}')">GUARDAR</button>`]},
+mvd:a=>{const m=db.moves.find(x=>x.id==a.id);if(!m)throw 0;const p=P(m.pid),L=m.k=='compra'?'Compra':m.k=='venta'?'Venta':m.why,
+head=`<div class=c><b>${esc(p.name)}</b><br>${dmy(day(m.t))} ${hm(m.t)}<br><span class=big style="font-size:30px">${m.q>0?'+':''}${q(m.q)} ${p.unit}</span> — ${L}</div>`;
+if(m.k=='venta')return['Movimiento',head+`<div class=c>Este movimiento es parte de una venta. Para corregirlo, anulá la venta.</div><button class=btn onclick="go('hv')">📋 Ir a ventas anteriores</button>`];
+return['Corregir movimiento',head+`<div class=c><label>Cantidad (${p.unit})</label><input id=q inputmode=decimal value="${Math.abs(m.q)}">${m.k=='compra'?`<label>Costo total pagado (Gs.)</label><input id=c inputmode=numeric value="${Math.round(m.cost*m.q)}">`:`<label>Motivo</label><select id=w>${['Consumo familiar','Merma','Producto dañado','Regalo','Otro'].map(o=>`<option ${o==m.why?'selected':''}>${o}`).join('')}</select>`}</div><button class=btn onclick="doMvEdit('${m.id}')">GUARDAR CAMBIOS</button><button class="btn r" onclick="delMove('${m.id}')">🗑️ BORRAR ESTE MOVIMIENTO</button>`]},
 prec:()=>['💰 Precios',db.products.map(p=>`<div class=c onclick="go('edit',{id:'${p.id}'})"><b>${th(p)}${esc(p.name)}</b> <small>por ${p.unit}</small><div class=row><span>Costo</span><b>${g(p.cost)}</b></div><div class=row><span>Precio</span><b>${g(p.price)}</b></div><div class=row><span>Ganancia</span><b class=ok>${g(p.price-p.cost)} (${pct(p)}%)</b></div></div>`).join('')+`<button class=btn onclick="go('edit',{id:''})">➕ Producto nuevo</button><h3>🧺 Combos</h3>`+db.combos.map(c=>`<div class=c onclick="ce('${c.id}')"><b>${th(c)}${esc(c.name)}</b><div class=row><span>Costo</span><b>${g(ccost(c))}</b></div><div class=row><span>Precio</span><b>${g(c.price)}</b></div><div class=row><span>Ganancia</span><b class=ok>${g(c.price-ccost(c))}</b></div></div>`).join('')+`<button class="btn w" onclick="ce('')">➕ Combo nuevo</button>`],
 edit:a=>{const p=a.id?P(a.id):{name:'',unit:'kg',cost:0,price:0,min:3,img:'',mk:db.biz.mk??40};return[a.id?'Editar producto':'Producto nuevo',`<div class=c><label>Nombre</label><input id=n value="${esc(p.name)}"><label>Foto del producto</label><input type=file accept="image/*" onchange="pickP(this)"><div id=pv>${p.img?`<img src="${p.img}" style="width:120px;border-radius:10px">`:''}</div><button class="btn w" style="font-size:17px;padding:10px" onclick="PI='';$('#pv').innerHTML=''">Quitar foto</button><label>Se vende por</label><select id=u>${U.map(u=>`<option ${u==p.unit?'selected':''}>${u}`).join('')}</select>
 <label>Costo por ${p.unit} (Gs.)</label><input id=c inputmode=numeric value="${Math.round(p.cost)||''}" oninput="upd()"><small>Se actualiza solo cuando anotás una Entrada.</small><label style="margin-top:10px">Ganancia % (sobre el costo)</label><input id=k inputmode=decimal value="${mkOf(p)}" oninput="upd()"><div class="big ok" id=gn style="font-size:26px"></div>
@@ -99,7 +106,7 @@ pub:()=>['📱 Publicar',`<div class=c><b>Elegí qué publicar:</b><br>${db.prod
 <div class=c><label>Título</label><input id=hd value="OFERTAS DE HOY"><label>Para</label><select id=fm><option value=wa>WhatsApp (historia)<option value=ig>Instagram (cuadrada)<option value=fb>Facebook (horizontal)</select><label>Foto de fondo (opcional)</label><input type=file accept="image/*" onchange="bg(this)"></div>
 <button class=btn onclick="mk()">🖼️ CREAR PUBLICACIÓN</button><div id=out></div>`],
 cfg:()=>['⚙️ Mi negocio',`<div class=c><label>Nombre del negocio</label><input id=bn value="${esc(db.biz.name)}"><label>WhatsApp (opcional)</label><input id=bw inputmode=tel value="${esc(db.biz.wa)}"><label>Ganancia habitual (%)</label><input id=bk inputmode=decimal value="${db.biz.mk??40}"><label>Redondear precios a (Gs.)</label><select id=br>${[100,500,1000].map(r=>`<option ${(db.biz.round||500)==r?'selected':''}>${r}`).join('')}</select><button class=btn onclick="saveB()">GUARDAR</button></div>
-<button class=btn onclick="exp()">📤 EXPORTAR DATOS</button><label class="btn w">📥 IMPORTAR DATOS<input type=file accept=".json,application/json" hidden onchange="imp(this)"></label><button class="btn w" onclick="expC()">📊 Ventas para Excel</button><div class=c><small>Hacé una copia seguido: tocá EXPORTAR y mandátela por WhatsApp o mail.</small></div>`]};
+<div class=c><label>Código de la verdulería (nube)</label><input id=cd value="${esc(localStorage.getItem('verdu_code')||'')}" placeholder="el mismo en los 2 celulares"><button class="btn w" onclick="setCode()">CONECTAR</button><small>Estado: ${$('#sy').textContent||'-'}</small></div><button class=btn onclick="exp()">📤 EXPORTAR DATOS</button><label class="btn w">📥 IMPORTAR DATOS<input type=file accept=".json,application/json" hidden onchange="imp(this)"></label><button class="btn w" onclick="expC()">📊 Ventas para Excel</button><div class=c><small>Hacé una copia seguido: tocá EXPORTAR y mandátela por WhatsApp o mail.</small></div>`]};
 function mvu(){const p=P(S[S.length-1].a.id),bu=$('#bu').value;$('#lq').textContent='¿Cuántos '+bu+'?';$('#fr').style.display=bu==p.unit?'none':'block';$('#lf').textContent='¿Cuántos '+p.unit+' trae cada '+bu+'?';$('#f').value=fx(p,bu);cp()}
 function cp(){const a=S[S.length-1].a;if(a.k!='compra')return;const p=P(a.id),bu=$('#bu').value,n=num($('#q').value),t=mon($('#c').value),f=bu==p.unit?1:num($('#f').value);if(!(n&&t&&f)){$('#cp').textContent='';return}const u=n*f,nc=newCost(p,u,t);$('#cp').innerHTML='Entran '+q(u)+' '+p.unit+' al stock<br>Esta compra: '+g(t/u)+' por '+p.unit+'<br>Costo promedio: '+g(nc)+'<br>Precio de venta: <b>'+g(rnd(nc*(1+mkOf(p)/100)))+'</b> (ganancia '+mkOf(p)+'%)'}
 function upd(){const c=mon($('#c').value),k=num($('#k').value),p=rnd(c*(1+k/100));$('#gn').innerHTML=c?'Precio de venta: <b>'+g(p)+'</b><br>Ganancia: '+g(p-c)+' ('+q((p-c)/c*100)+'%)':''}
@@ -107,6 +114,11 @@ function doMov(pid,k){const p=P(pid),n=num($('#q').value);if(n<=0)return alert('
 if(k=='compra'){const t=mon($('#c').value),bu=$('#bu').value,f=bu==p.unit?1:num($('#f').value);if(t<=0)return alert('Escribí cuánto pagaste');if(f<=0)return alert('Escribí cuántos '+p.unit+' trae cada '+bu);const u=n*f,nc=newCost(p,u,t);db.moves.push({id:id(),pid,q:u,k,cost:t/u,bq:n,bu,t:Date.now()});p.cost=nc;p.bu=bu;p.f=f;reprice();save()}
 else{if(!ok({[pid]:n}))return;if(k=='venta')mkSale([{key:'p:'+pid,q:n}]);else{db.moves.push({id:id(),pid,q:-n,k,why:$('#w').value,cost:p.cost,t:Date.now()});save()}}
 toast('✅ Guardado');back()}
+function doMvEdit(i){const m=db.moves.find(x=>x.id==i),p=P(m.pid),n=num($('#q').value);if(n<=0)return alert('Escribí la cantidad');
+if(m.k=='compra'){const t=mon($('#c').value);if(t<=0)return alert('Escribí cuánto pagaste');m.q=n;m.cost=t/n;delete m.bq;delete m.bu}else{m.q=-n;m.why=$('#w').value}
+recost(p);reprice();save();toast('✅ Corregido');back()}
+function delMove(i){const m=db.moves.find(x=>x.id==i);if(!confirm('¿Borrar este movimiento? El stock se corrige solo.'))return;db.moves=db.moves.filter(x=>x.id!=i);recost(P(m.pid));reprice();save();toast('Borrado');back()}
+function setCode(){const c=$('#cd').value.trim();if(!/^[A-Za-z0-9_-]{6,}$/.test(c))return alert('El código debe tener al menos 6 letras o números, sin espacios.');localStorage.setItem('verdu_code',c);location.reload()}
 function doEdit(pid){const o={name:$('#n').value.trim(),unit:$('#u').value,cost:mon($('#c').value),mk:num($('#k').value),min:num($('#m').value),};if(PI!==undefined)o.img=PI;if(!o.name)return alert('Escribí el nombre');if(pid&&P(pid).unit!=o.unit){if(db.moves.some(m=>m.pid==pid)&&!confirm('Cambiar la unidad NO convierte el stock que ya tenés. ¿Seguir?'))return;o.bu=o.unit;o.f=1}
 if(pid)Object.assign(P(pid),o);else db.products.push({id:id(),...o});reprice();save();toast('✅ Guardado');back()}
 function delP(pid){if(!confirm('¿Eliminar este producto y su historial?'))return;db.products=db.products.filter(p=>p.id!=pid);db.moves=db.moves.filter(m=>m.pid!=pid);db.combos.forEach(c=>c.items=c.items.filter(i=>i.pid!=pid));reprice();save();back()}
@@ -153,4 +165,35 @@ function imp(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onl
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
 draw();
-</script></body></html>
+</script><script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {initializeFirestore,persistentLocalCache,persistentMultipleTabManager,collection,doc,onSnapshot,setDoc,writeBatch} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {firebaseConfig as cfg} from './config.js';
+const COLS=['products','combos','moves','sales','exp'],sh={products:{},combos:{},moves:{},sales:{},exp:{}},code=localStorage.getItem('verdu_code'),sy=t=>{$('#sy').textContent=t},LIVE=['home','stock','prod','prec','vta','hv','res'];
+let shBiz='',fs,live=false;
+const col=c=>collection(fs,'profiles',code,c),dc=(c,i)=>doc(fs,'profiles',code,c,i),refresh=()=>{if(LIVE.includes(S[S.length-1].v))draw()};
+if(!cfg.apiKey||cfg.apiKey.startsWith('PEGAR'))sy('☁️ sin nube');
+else if(!code)sy('☁️ falta código');
+else{try{const app=initializeApp(cfg);try{fs=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){fs=initializeFirestore(app,{})}sy('☁️ conectando…');start()}catch(e){console.error(e);sy('⚠️ sin nube')}}
+function bizFrom(s){const b=s.docs.find(d=>d.id=='biz');if(b){db.biz=Object.assign({name:'Mi Verdulería',wa:'',mk:40,round:500},b.data());shBiz=JSON.stringify(db.biz)}}
+function status(snaps){const p=[...COLS,'cfg'].some(c=>snaps[c]&&snaps[c].metadata.hasPendingWrites);sy(p?'⏳ guardando…':'☁️ al día')}
+function start(){const snaps={},seen={};
+[...COLS,'cfg'].forEach(c=>onSnapshot(col(c),s=>{snaps[c]=s;
+if(!live){if(c=='cfg'&&s.metadata.fromCache&&!s.docs.some(d=>d.id=='meta'))return;seen[c]=1;if(Object.keys(seen).length==6)first(snaps)}
+else apply(c,s);if(live)status(snaps)},e=>{console.error(e);sy('⚠️ error de nube')}))}
+function first(snaps){const cloudHas=snaps.cfg.docs.some(d=>d.id=='meta'),localHas=db.moves.length||db.sales.length||db.exp.length||db.combos.length||db.products.length>7;
+const fromCloud=()=>{COLS.forEach(c=>apply(c,snaps[c],1));bizFrom(snaps.cfg)},mark=()=>{COLS.forEach(c=>{sh[c]={};snaps[c].docs.forEach(d=>sh[c][d.id]=JSON.stringify(d.data()))});const b=snaps.cfg.docs.find(d=>d.id=='biz');shBiz=b?JSON.stringify(b.data()):''};
+if(!cloudHas){mark();live=true;setDoc(dc('cfg','meta'),{at:Date.now()});cloudSave()}
+else if(localHas&&localStorage.getItem('verdu_synced')!=code){
+ if(confirm('Este celular tiene datos propios y la nube también.\n\nAceptar = usar los datos de la NUBE (se pierden los de este celular)\nCancelar = SUBIR los de este celular (reemplazan a los de la nube)')){localStorage.setItem('verdu_backup',JSON.stringify(db));fromCloud();live=true}
+ else{mark();live=true;cloudSave()}}
+else{fromCloud();live=true}
+localStorage.setItem('verdu_synced',code);localStore();refresh();status(snaps)}
+function apply(c,s,quiet){if(c=='cfg')bizFrom(s);else{db[c]=s.docs.map(d=>d.data());sh[c]={};db[c].forEach(x=>sh[c][x.id]=JSON.stringify(x));if(c=='products')db.products.sort(srt)}if(!quiet){localStore();refresh()}}
+window.cloudSave=()=>{if(!live)return;const ops=[];COLS.forEach(c=>{const cur={};db[c].forEach(x=>cur[x.id]=JSON.stringify(x));
+for(const i in cur)if(sh[c][i]!==cur[i]){ops.push([c,i,JSON.parse(cur[i])]);sh[c][i]=cur[i]}
+for(const i in sh[c])if(!(i in cur)){ops.push([c,i,null]);delete sh[c][i]}});
+const b=JSON.stringify(db.biz);if(b!==shBiz){ops.push(['cfg','biz',JSON.parse(b)]);shBiz=b}
+for(let k=0;k<ops.length;k+=400){const w=writeBatch(fs);ops.slice(k,k+400).forEach(([c,i,v])=>v?w.set(dc(c,i),v):w.delete(dc(c,i)));w.commit().catch(e=>{console.error(e);sy('⚠️ error de nube')})}};
+</script>
+</body></html>

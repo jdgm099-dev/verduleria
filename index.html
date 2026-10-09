@@ -1,9 +1,9 @@
 <!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Verdulería">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="El Rayado">
 <meta name="theme-color" content="#1b5e20"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" id="ati" href="icon.svg">
-<title>Mi Verdulería</title>
+<title>Verdulería El Rayado</title>
 <style>
 :root{--g:#1b5e20;--g2:#2e7d32;--r:#c62828;--o:#e65100}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -31,6 +31,7 @@ input[type=checkbox]{width:30px;height:30px;margin:0 10px 0 0;vertical-align:mid
 <main id="m"></main><div id="ts"></div>
 <script>
 const K='verdu1',U=['kg','unidad','cabeza','atado','mazo','docena','bolsa','caja','cajón','otro'],$=s=>document.querySelector(s);
+const BIZ0={name:'Verdulería "El Rayado"',wa:'',mk:40,round:500,slogan:'Ascendemos la calidad, descendemos los precios'},bizFix=b=>{if(!b.name||b.name=='Mi Verdulería')b.name=BIZ0.name;if(b.slogan===undefined)b.slogan=BIZ0.slogan;return b};
 let db=loadDB(),CT={},CB={},BG=null,CV=null,PI,TOT=null,VQ='';
 function seedProducts(){return[['Tomate Santa Cruz',5000,'🍅'],['Papa',6000,'🥔'],['Cebolla',6000,'🧅'],['Zanahoria',3500,'🥕'],['Locote verde',7000,'🫑'],['Ajo',12000,'🧄'],['Queso Paraguay',35000,'🧀']].map((p,i)=>({id:'p'+i,name:p[0],unit:'kg',cost:p[1],mk:40,price:Math.round(p[1]*1.4/500)*500,min:3,e:p[2]}))}
 const PL={kg:'kg',unidad:'unidades',cabeza:'cabezas',atado:'atados',mazo:'mazos',docena:'docenas',bolsa:'bolsas',caja:'cajas',cajón:'cajones',otro:'otros',combo:'combos'},FR={.25:'¼',.5:'½',.75:'¾'},
@@ -39,8 +40,8 @@ qf=n=>{const w=Math.floor(n+1e-9),r=Math.round((n-w)*100)/100;if(r==0)return Str
 fracOK=k=>k[0]=='p'&&P(k.slice(2)).unit=='kg';
 function recost(p){const L=db.moves.filter(m=>m.pid==p.id).sort((a,b)=>a.t-b.t);let s=0,c=null;L.forEach(m=>{if(m.k=='compra'){const s0=Math.max(s,0);c=(s0*(c??m.cost)+m.q*m.cost)/(s0+m.q)}s+=m.q});if(c!==null)p.cost=c}
 function reprice(){db.products.sort(srt);db.products.forEach(p=>{p.mk=mkOf(p);p.price=rnd(p.cost*(1+p.mk/100))});db.combos.forEach(c=>{const k=ccost(c);c.mk=mkOf(c,k);c.price=rnd(k*(1+c.mk/100))})}
-function loadDB(){const d={products:[],combos:[],moves:[],sales:[],exp:[],biz:{name:'Mi Verdulería',wa:'',mk:40,round:500}};
-try{const o=JSON.parse(localStorage.getItem(K));if(o&&o.products){Object.assign(d,o);d.products.sort((a,b)=>a.name.localeCompare(b.name,'es'));return d}}catch(e){}
+function loadDB(){const d={products:[],combos:[],moves:[],sales:[],exp:[],biz:{...BIZ0}};
+try{const o=JSON.parse(localStorage.getItem(K));if(o&&o.products){Object.assign(d,o);d.biz=bizFix(d.biz||{});d.products.sort((a,b)=>a.name.localeCompare(b.name,'es'));return d}}catch(e){}
 d.products=seedProducts();return d}
 const srt=(a,b)=>a.name.localeCompare(b.name,'es');
 function localStore(){try{localStorage.setItem(K,JSON.stringify(db))}catch(e){alert('No hay espacio para guardar. Exportá tus datos y sacá fotos más chicas.')}}
@@ -110,7 +111,7 @@ res:a=>{const per=a.p||'hoy',r=sum(per),lw=db.products.filter(low);return['📊 
 pub:()=>['📱 Publicar',`<div class=c><b>Elegí qué publicar:</b><br>${db.products.map(p=>`<label class=row><span><input type=checkbox class=pk value="p:${p.id}">${th(p)}${esc(p.name)}</span><span>${g(p.price)}</span></label>`).join('')}${db.combos.map(c=>`<label class=row><span><input type=checkbox class=pk value="c:${c.id}">${th(c)}${esc(c.name)}</span><span>${g(c.price)}</span></label>`).join('')}<small>Máximo 6 por imagen en WhatsApp y 5 en Instagram/Facebook.</small></div>
 <div class=c><label>Título</label><input id=hd value="OFERTAS DE HOY"><label>Formato</label><select id=fm><option value=wa>WhatsApp (historia)<option value=ig>Instagram y Facebook (publicación)</select><label>Foto de fondo (opcional)</label><label class="btn w" style="font-size:18px;padding:12px;margin-bottom:8px">📷 Sacar o elegir foto<input type=file accept="image/*" hidden onchange="bg(this)"></label></div>
 <button class=btn onclick="mk()">🖼️ CREAR PUBLICACIÓN</button><div id=out></div>`],
-cfg:()=>['⚙️ Mi negocio',`<div class=c><label>Nombre del negocio</label><input id=bn value="${esc(db.biz.name)}"><label>WhatsApp (opcional)</label><input id=bw inputmode=tel value="${esc(db.biz.wa)}"><label>Ganancia habitual para productos nuevos (%)</label><input id=bm inputmode=decimal value="${db.biz.mk??40}"><label>Redondear precios a (Gs.)</label><select id=br>${[100,500,1000].map(r=>`<option ${(db.biz.round||500)==r?'selected':''}>${r}`).join('')}</select><button class=btn onclick="saveB()">GUARDAR</button></div>
+cfg:()=>['⚙️ Mi negocio',`<div class=c><label>Nombre del negocio</label><input id=bn value="${esc(db.biz.name)}"><label>Eslogan (aparece en las publicaciones)</label><input id=bs value="${esc(db.biz.slogan||'')}"><label>WhatsApp (opcional)</label><input id=bw inputmode=tel value="${esc(db.biz.wa)}"><label>Ganancia habitual para productos nuevos (%)</label><input id=bm inputmode=decimal value="${db.biz.mk??40}"><label>Redondear precios a (Gs.)</label><select id=br>${[100,500,1000].map(r=>`<option ${(db.biz.round||500)==r?'selected':''}>${r}`).join('')}</select><button class=btn onclick="saveB()">GUARDAR</button></div>
 <div class=c><label>Código de la verdulería (nube)</label><input id=cd value="${esc(localStorage.getItem('verdu_code')||'')}" placeholder="el mismo en los 2 celulares"><button class="btn w" onclick="setCode()">CONECTAR</button><small>Estado: ${$('#sy').textContent||'☁️ sin conectar'}</small></div><button class=btn onclick="exp()">📤 EXPORTAR DATOS</button><label class="btn w">📥 IMPORTAR DATOS<input type=file accept=".json,application/json" hidden onchange="imp(this)"></label><button class="btn w" onclick="expC()">📊 Ventas para Excel</button><button class="btn r" style="font-size:18px;padding:14px" onclick="resetTrans()">🧹 Borrar ventas, movimientos y gastos de prueba</button><div class=c><small>Hacé una copia seguido: tocá EXPORTAR y mandátela por WhatsApp o mail.</small></div>`]};
 function mvu(){const p=P(S[S.length-1].a.id),bu=$('#bu').value;$('#lq').textContent=cu(bu)+'?';$('#fr').style.display=bu==p.unit?'none':'block';$('#lf').textContent=cu(p.unit)+' trae cada '+bu+'?';$('#f').value=fx(p,bu);cp()}
 function cp(){const a=S[S.length-1].a;if(a.k!='compra')return;const p=P(a.id),bu=$('#bu').value,n=num($('#q').value),t=mon($('#c').value),f=bu==p.unit?1:num($('#f').value);if(!(n&&t&&f)){$('#cp').textContent='';return}const u=n*f,nc=newCost(p,u,t);$('#cp').innerHTML='Entran '+qu(u,p.unit)+' al stock<br>Esta compra: '+g(t/u)+' por '+p.unit+'<br>Costo promedio: '+g(nc)+'<br>Precio de venta: <b>'+g(rnd(nc*(1+mkOf(p)/100)))+'</b> (ganancia '+mkOf(p)+'%)'}
@@ -172,14 +173,15 @@ let gr=x.createLinearGradient(0,0,0,h);gr.addColorStop(0,'#0a3d12');gr.addColorS
 if(BG){const s=Math.max(w/BG.width,h/BG.height);x.drawImage(BG,(w-BG.width*s)/2,(h-BG.height*s)/2,BG.width*s,BG.height*s);x.fillStyle='rgba(4,40,10,.6)';x.fillRect(0,0,w,h)}
 x.save();x.globalAlpha=.07;x.fillStyle='#fff';for(let i=-h;i<w+h;i+=m*.17){x.beginPath();x.moveTo(i,0);x.lineTo(i+m*.08,0);x.lineTo(i+m*.08-h*.5,h);x.lineTo(i-h*.5,h);x.fill()}x.restore();
 /* cabecera */
-x.fillStyle='#05240a';x.fillRect(0,0,w,m*.15);x.fillStyle='#ffd600';x.fillRect(0,m*.15,w,m*.013);
-x.textAlign='center';x.fillStyle='#fff';sh('rgba(0,0,0,.5)',m*.02);fit(db.biz.name.toUpperCase(),m*.085,w*.9);x.fillText(db.biz.name.toUpperCase(),w/2,m*.105);nsh();
-const ry=m*.19,rh0=m*.125,rx0=w*.05,rx1=w*.95,nt=rh0*.28;x.fillStyle='#d50000';sh('rgba(0,0,0,.45)',m*.02);x.beginPath();x.moveTo(rx0,ry);x.lineTo(rx1,ry);x.lineTo(rx1-nt,ry+rh0/2);x.lineTo(rx1,ry+rh0);x.lineTo(rx0,ry+rh0);x.lineTo(rx0+nt,ry+rh0/2);x.closePath();x.fill();nsh();
+x.fillStyle='#05240a';x.fillRect(0,0,w,m*.18);x.fillStyle='#ffd600';x.fillRect(0,m*.18,w,m*.013);
+x.textAlign='center';x.fillStyle='#fff';sh('rgba(0,0,0,.5)',m*.02);fit(db.biz.name.toUpperCase(),m*.078,w*.92);x.fillText(db.biz.name.toUpperCase(),w/2,m*.095);nsh();
+if(db.biz.slogan){x.fillStyle='#ffd600';const sl=db.biz.slogan;fit(sl,m*.036,w*.9);x.fillText(sl,w/2,m*.155)}
+const ry=m*.215,rh0=m*.12,rx0=w*.05,rx1=w*.95,nt=rh0*.28;x.fillStyle='#d50000';sh('rgba(0,0,0,.45)',m*.02);x.beginPath();x.moveTo(rx0,ry);x.lineTo(rx1,ry);x.lineTo(rx1-nt,ry+rh0/2);x.lineTo(rx1,ry+rh0);x.lineTo(rx0,ry+rh0);x.lineTo(rx0+nt,ry+rh0/2);x.closePath();x.fill();nsh();
 x.fillStyle='#ffeb3b';const hd=$('#hd').value.toUpperCase();const hz=fit(hd,m*.088,(rx1-rx0)*.8);x.fillText(hd,w/2,ry+rh0/2+hz*.34);
 /* pie */
 const fy=h-m*.135,fh=m*.1;x.fillStyle='#25d366';sh('rgba(0,0,0,.45)',m*.02);rp(x,w*.06,fy,w*.88,fh,fh/2);x.fill();nsh();
 const ft=db.biz.wa?'PEDIDOS POR WHATSAPP: '+db.biz.wa:'PEDIDOS POR WHATSAPP';x.fillStyle='#04230a';fit(ft,m*.055,w*.8);x.fillText(ft,w/2,fy+fh/2+m*.02);
-const T0=m*.36,A=fy-m*.02-T0,n=it.length;
+const T0=m*.38,A=fy-m*.02-T0,n=it.length;
 if(n==1&&it[0].cont&&it[0].cont.length){const i=it[0];let z=m*.09;x.font=B(z);let L=wrapT(x,i.n,w*.88);while(L.length>2&&z>20){z*=.9;x.font=B(z);L=wrapT(x,i.n,w*.88)}
  x.textAlign='center';x.fillStyle='#fff';sh('rgba(0,0,0,.6)',m*.015);L.forEach((l,k)=>x.fillText(l,w/2,T0+m*.01+z*.85+k*z*1.05));nsh();
  const nameB=T0+m*.01+L.length*z*1.05+m*.03,rest=T0+A-nameB,cl=i.cont.length>8?[...i.cont.slice(0,7),{n:'y '+(i.cont.length-7)+' más',q:''}]:i.cont,stack=h>w*1.5,cwid=stack?w*.9:w*.62,cx0=stack?w*.05:w*.04,pad=m*.03,nl=cl.length;
@@ -215,15 +217,15 @@ else{const wts=it.map(i=>i.cont&&i.cont.length?1.3+.12*Math.min(i.cont.length,8)
  const z2=Math.min(ph*.16,z*.75),bh=L.length*z*1.06+(hasC?CL.length*cz*1.2+cz*.35:0)+(i.sp?z2*1.5:0);let ty=top+ph/2-bh/2+z*.85;x.textAlign='left';x.fillStyle='#10321a';x.font=B(z);L.forEach((l,q2)=>x.fillText(l,tx,ty+q2*z*1.06));
  if(hasC){x.font=B(cz);x.fillStyle='#3b5e3f';CL.forEach((l,q2)=>x.fillText(l,tx,ty+L.length*z*1.06+cz*.35+q2*cz*1.2))}
  if(i.sp){const t1='SÚPER '+g(i.sp);let zz=z2;x.font=B(zz);while(x.measureText(t1).width>mw&&zz>10){zz*=.94;x.font=B(zz)}strike(t1,tx,ty+(L.length-1)*z*1.06+z2*1.55,zz,'#c62828','left')}})}
-const cap=[$('#hd').value.toUpperCase(),'',...it.map(i=>'• '+i.nm+': '+g(i.v)+(i.u?' '+i.u:'')+(i.cont&&i.cont.length?'\n'+i.cont.map(c=>'   – '+c.n+' '+c.q).join('\n'):'')),'',db.biz.wa?'Pedidos por WhatsApp: '+db.biz.wa:'Pedidos por WhatsApp'].join('\n');
+const cap=[$('#hd').value.toUpperCase(),'',...it.map(i=>'• '+i.nm+': '+g(i.v)+(i.u?' '+i.u:'')+(i.cont&&i.cont.length?'\n'+i.cont.map(c=>'   – '+c.n+' '+c.q).join('\n'):'')),'',...(db.biz.slogan?[db.biz.name+' — '+db.biz.slogan]:[]),db.biz.wa?'Pedidos por WhatsApp: '+db.biz.wa:'Pedidos por WhatsApp'].join('\n');
 CV=cv;const url=cv.toDataURL('image/png');$('#out').innerHTML=`<img src="${url}" style="width:100%;border-radius:12px;margin-bottom:12px"><button class=btn onclick="shr()">📤 COMPARTIR</button><a class="btn w" download="publicacion.png" href="${url}">⬇️ DESCARGAR</a><small>Si no baja, mantené apretada la imagen y tocá "Guardar".</small><label style="margin-top:14px">Texto para pegar en la publicación</label><textarea id=cap rows=7 style="width:100%;font-size:18px;padding:10px;border:2px solid #555;border-radius:12px">${esc(cap)}</textarea><button class="btn w" onclick="copyCap()">📋 COPIAR TEXTO</button>`}
 function copyCap(){const t=$('#cap');t.select();try{navigator.clipboard.writeText(t.value).catch(()=>document.execCommand('copy'))}catch(e){document.execCommand('copy')}toast('✅ Texto copiado')}
 function shr(){CV.toBlob(b=>{const f=new File([b],'publicacion.png',{type:'image/png'});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});else alert('Mantené apretada la imagen y elegí Guardar')})}
-function saveB(){db.biz={name:$('#bn').value.trim()||'Mi Verdulería',wa:$('#bw').value.trim(),mk:num($('#bm').value)||40,round:+$('#br').value||500};reprice();save();toast('✅ Guardado');back()}
+function saveB(){db.biz={name:$('#bn').value.trim()||BIZ0.name,slogan:$('#bs').value.trim(),wa:$('#bw').value.trim(),mk:num($('#bm').value)||40,round:+$('#br').value||500};reprice();save();toast('✅ Guardado');back()}
 function dl(name,txt,type){const b=new Blob([txt],{type}),f=new File([b],name,{type});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click()}}
 function exp(){localStorage.setItem('verdu_exp',Date.now());dl('verduleria-'+T()+'.json',JSON.stringify(db),'application/json')}
 function expC(){const r=['Fecha;Hora;Detalle;Total;Costo;Ganancia'];db.sales.forEach(s=>r.push([dmy(day(s.t)),hm(s.t),'"'+s.items.map(i=>q(i.q)+' '+i.u+' '+i.n).join(', ')+'"',Math.round(s.total),Math.round(s.cost),Math.round(s.total-s.cost)].join(';')));dl('ventas-'+T()+'.csv','\uFEFF'+r.join('\n'),'text/csv')}
-function imp(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.products||!d.moves)throw 0;if(!confirm('Esto reemplaza todos los datos actuales. ¿Seguir?'))return;db=Object.assign({products:[],combos:[],moves:[],sales:[],exp:[],biz:{name:'Mi Verdulería',wa:'',mk:40,round:500}},d);db.products.sort(srt);CT={};save();S.length=1;draw();toast('✅ Datos importados')}catch(e){alert('Ese archivo no es una copia válida.')}};r.readAsText(f)}
+function imp(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.products||!d.moves)throw 0;if(!confirm('Esto reemplaza todos los datos actuales. ¿Seguir?'))return;db=Object.assign({products:[],combos:[],moves:[],sales:[],exp:[],biz:{...BIZ0}},d);db.biz=bizFix(db.biz||{});db.products.sort(srt);CT={};save();S.length=1;draw();toast('✅ Datos importados')}catch(e){alert('Ese archivo no es una copia válida.')}};r.readAsText(f)}
 (function(){const c=document.createElement('canvas');c.width=c.height=180;const x=c.getContext('2d');x.fillStyle='#1b5e20';x.fillRect(0,0,180,180);x.font='110px serif';x.textAlign='center';x.fillText('🥬',90,128);$('#ati').href=c.toDataURL()})();
 if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
@@ -239,7 +241,7 @@ const col=c=>collection(fs,'profiles',code,c),dc=(c,i)=>doc(fs,'profiles',code,c
 if(!cfg.apiKey||cfg.apiKey.startsWith('PEGAR'))sy('☁️ sin nube');
 else if(!code)sy('☁️ falta código');
 else{try{const app=initializeApp(cfg);try{fs=initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})})}catch(e){fs=initializeFirestore(app,{})}sy('☁️ conectando…');start()}catch(e){console.error(e);sy('⚠️ sin nube')}}
-function bizFrom(s){const b=s.docs.find(d=>d.id=='biz');if(b){db.biz=Object.assign({name:'Mi Verdulería',wa:'',mk:40,round:500},b.data());shBiz=JSON.stringify(db.biz)}}
+function bizFrom(s){const b=s.docs.find(d=>d.id=='biz');if(b){db.biz=bizFix(Object.assign({...BIZ0},b.data()));shBiz=JSON.stringify(db.biz)}}
 function status(snaps){const p=[...COLS,'cfg'].some(c=>snaps[c]&&snaps[c].metadata.hasPendingWrites);sy(p?'⏳ guardando…':'☁️ al día')}
 function start(){const snaps={},seen={};
 [...COLS,'cfg'].forEach(c=>onSnapshot(col(c),s=>{snaps[c]=s;

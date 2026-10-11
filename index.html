@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="El Rayado">
-<meta name="theme-color" content="#1b5e20"><meta name="app-version" content="2026.10.12-2"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" id="ati" href="icon.svg">
+<meta name="theme-color" content="#1b5e20"><meta name="app-version" content="2026.10.12-3"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" id="ati" href="icon.svg">
 <title>Verdulería El Rayado</title>
 <style>
 :root{--g:#1b5e20;--g2:#2e7d32;--r:#c62828;--o:#e65100}
@@ -128,7 +128,7 @@ pub:()=>['📱 Publicar',`<div class=c><b>Elegí qué publicar:</b><br>${db.prod
 <div class=c><label class=row style="border:0"><span><input type=checkbox id=cmp checked>Mostrar comparación con el súper</span></label><small>Aparece solo en los productos con precio del súper cargado que sea más caro que el tuyo.</small><label style="margin-top:12px">Título</label><input id=hd value="OFERTAS DE HOY"><label>Captura de Comprador Digital (opcional)</label><label class="btn w" style="font-size:18px;padding:12px;margin-bottom:6px">📸 Agregar captura<input type=file accept="image/*" hidden onchange="shotPick(this)"></label><small id=shotpv>Si querés, agregá una captura de pantalla de Comprador Digital con los precios. Recortala para que se vea solo la lista.</small><div style="height:10px"></div><label>Formato</label><select id=fm><option value=wa>WhatsApp (historia)<option value=ig>Instagram y Facebook (publicación)</select><label>Foto de fondo (opcional)</label><label class="btn w" style="font-size:18px;padding:12px;margin-bottom:8px">📷 Sacar o elegir foto<input type=file accept="image/*" hidden onchange="bg(this)"></label></div>
 <button class=btn onclick="mk()">🖼️ CREAR PUBLICACIÓN</button><div id=out></div>`],
 cfg:()=>['⚙️ Mi negocio',`<div class=c><label>Nombre del negocio</label><input id=bn value="${esc(db.biz.name)}"><label>Eslogan (aparece en las publicaciones)</label><input id=bs value="${esc(db.biz.slogan||'')}"><label>WhatsApp (opcional)</label><input id=bw inputmode=tel value="${esc(db.biz.wa)}"><label>Ganancia habitual para productos nuevos (%)</label><input id=bm inputmode=decimal value="${db.biz.mk??40}"><label>Redondear precios a (Gs.)</label><select id=br>${[100,500,1000].map(r=>`<option ${(db.biz.round||500)==r?'selected':''}>${r}`).join('')}</select><button class=btn onclick="saveB()">GUARDAR</button></div>
-<div class=c><label>Código de la verdulería (nube)</label><input id=cd value="${esc(localStorage.getItem('verdu_code')||'')}" placeholder="el mismo en todos los dispositivos"><button class="btn w" onclick="setCode()">CONECTAR</button><div id=cst>${cstHTML()}</div><button class="btn w" style="font-size:17px;padding:10px;margin:8px 0 0" onclick="location.reload()">🔄 Reintentar conexión</button></div><button class=btn onclick="exp()">📤 EXPORTAR DATOS</button><label class="btn w">📥 IMPORTAR DATOS<input type=file accept=".json,application/json" hidden onchange="imp(this)"></label><button class="btn w" onclick="expC()">📊 Ventas para Excel</button><button class="btn r" style="font-size:18px;padding:14px" onclick="resetTrans()">🧹 Borrar ventas, movimientos y gastos de prueba</button><div class=c><small>Hacé una copia seguido: tocá EXPORTAR y mandátela por WhatsApp o mail.</small></div><div class=c><small>Versión de la app: <b>${APP_V}</b></small><button class="btn w" style="font-size:17px;padding:10px;margin:8px 0 0" onclick="chkUpd(true)">🔄 Buscar actualización</button></div>`]};
+<div class=c><label>Código de la verdulería (nube)</label><input id=cd value="${esc(localStorage.getItem('verdu_code')||'')}" placeholder="el mismo en todos los dispositivos"><button class="btn w" onclick="setCode()">CONECTAR</button><div id=cst>${cstHTML()}</div><button class="btn w" style="font-size:17px;padding:10px;margin:8px 0 0" onclick="location.reload()">🔄 Reintentar conexión</button><button class="btn w" style="font-size:17px;padding:10px;margin:8px 0 0" onclick="window.cloudTest?cloudTest():toast('La nube todavía no arrancó',2500)">🔍 Probar conexión ahora</button></div><button class=btn onclick="exp()">📤 EXPORTAR DATOS</button><label class="btn w">📥 IMPORTAR DATOS<input type=file accept=".json,application/json" hidden onchange="imp(this)"></label><button class="btn w" onclick="expC()">📊 Ventas para Excel</button><button class="btn r" style="font-size:18px;padding:14px" onclick="resetTrans()">🧹 Borrar ventas, movimientos y gastos de prueba</button><div class=c><small>Hacé una copia seguido: tocá EXPORTAR y mandátela por WhatsApp o mail.</small></div><div class=c><small>Versión de la app: <b>${APP_V}</b></small><button class="btn w" style="font-size:17px;padding:10px;margin:8px 0 0" onclick="chkUpd(true)">🔄 Buscar actualización</button></div>`]};
 function mvu(){const p=P(S[S.length-1].a.id),bu=$('#bu').value;$('#lq').textContent=cu(bu)+'?';$('#fr').style.display=bu==p.unit?'none':'block';$('#lf').textContent=cu(p.unit)+' trae cada '+bu+'?';$('#f').value=fx(p,bu);cp()}
 function cp(){const a=S[S.length-1].a;if(a.k!='compra')return;const p=P(a.id),bu=$('#bu').value,n=num($('#q').value),t=mon($('#c').value),f=bu==p.unit?1:num($('#f').value);if(!(n&&t&&f)){$('#cp').textContent='';return}const u=n*f,nc=newCost(p,u,t);$('#cp').innerHTML='Entran '+qu(u,p.unit)+' al stock<br>Esta compra: '+g(t/u)+' por '+p.unit+'<br>Costo promedio: '+g(nc)+'<br>Precio de venta: <b>'+g(rnd(nc*(1+mkOf(p)/100)))+'</b> (ganancia '+mkOf(p)+'%)'}
 function ul(){const u=$('#u').value;$('#lc').textContent='Costo por '+u+' (Gs.)';$('#lm').textContent='Avisar cuando queden menos de ('+u+')';upd()}
@@ -272,32 +272,38 @@ col=c=>F.collection(fs,'profiles',code,c),dc=(c,i)=>F.doc(fs,'profiles',code,c,i
  setTimeout(()=>{if(!live&&window.cloudState=='☁️ conectando…')sy('⚠️ No logra conectar. Revisá internet y desactivá bloqueadores de anuncios para este sitio.',window.cloudDetail)},20000)
 })();
 function bizFrom(s){const b=s.docs.find(d=>d.id=='biz');if(b){db.biz=bizFix(Object.assign({...BIZ0},b.data()));shBiz=JSON.stringify(db.biz)}}
-let stuck=false,stuckT=null;
-function status(snaps){const all=[...COLS,'cfg'].map(c=>snaps[c]).filter(Boolean),p=all.some(s=>s.metadata.hasPendingWrites),off=all.length>0&&all.every(s=>s.metadata.fromCache);
- if(p){if(stuck)sy('⚠️ No logra enviar los cambios a la nube. Revisá la conexión, cerrá otras pestañas de la app y desactivá bloqueadores de anuncios.','Hay cambios guardados en este equipo que el servidor todavía no confirmó');else{sy('⏳ guardando…');if(!stuckT)stuckT=setTimeout(()=>{stuckT=null;stuck=true;if(window.cloudState=='⏳ guardando…')sy('⚠️ No logra enviar los cambios a la nube. Revisá la conexión, cerrá otras pestañas de la app y desactivá bloqueadores de anuncios.','Hay cambios guardados en este equipo que el servidor todavía no confirmó')},15000)}}
- else{stuck=false;if(stuckT){clearTimeout(stuckT);stuckT=null}sy(off?'☁️ Sin conexión: se guarda en este equipo y se envía cuando vuelva':'☁️ al día')}}
+let online=false,pend=0,stuck=false,stuckT=null,t0=Date.now(),probing=false;
+const WARN='⚠️ No logra enviar los cambios a la nube. Revisá la conexión, cerrá otras pestañas de la app y desactivá bloqueadores de anuncios.';
+function status(){if(!live)return;
+ if(pend>0){if(stuck)sy(WARN,'Hay cambios guardados en este equipo que el servidor todavía no confirmó');else{sy('⏳ guardando…');if(!stuckT)stuckT=setTimeout(()=>{stuckT=null;if(pend>0){stuck=true;status()}},15000)}}
+ else{stuck=false;if(stuckT){clearTimeout(stuckT);stuckT=null}sy(online?'☁️ al día':(Date.now()-t0<8000?'☁️ conectando…':'☁️ Sin conexión: se guarda en este equipo y se envía cuando vuelva'))}}
+/* ¿hay conexión real con el servidor? se pregunta directamente (1 lectura) y también se escucha el estado del documento "meta" */
+async function probe(){if(probing||!live)return;probing=true;try{await F.getDocFromServer(dc('cfg','meta'));online=true;if(window.cloudDetail&&/servidor/.test(window.cloudDetail))window.cloudDetail=''}catch(e){online=false}probing=false;status();return online}
+function connWatch(){F.onSnapshot(dc('cfg','meta'),{includeMetadataChanges:true},s=>{online=!s.metadata.fromCache;status()},e=>{online=false;status()});setTimeout(()=>{if(!online)probe()},2500);setInterval(()=>{if(!online&&!document.hidden)probe()},30000);document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!online)probe()})}
+window.cloudTest=async()=>{if(!live){toast('La nube todavía no arrancó. Mirá el Estado.',3000);return}toast('Probando…',1500);const ok=await probe();if(ok)toast('✅ Conexión con la nube: OK',3500);else{try{await F.getDocFromServer(dc('cfg','meta'))}catch(e){sy('⚠️ No se pudo hablar con el servidor de Firebase',em(e))}toast('❌ Sin conexión con la nube',3500)}};
 function start(){const snaps={},seen={};
 [...COLS,'cfg'].forEach(c=>F.onSnapshot(col(c),s=>{snaps[c]=s;
 if(!live){if(c=='cfg'&&s.metadata.fromCache&&!s.docs.some(d=>d.id=='meta'))return;seen[c]=1;if(Object.keys(seen).length==6)first(snaps)}
-else apply(c,s);if(live)status(snaps)},e=>{console.error(e);sy('⚠️ Error de la nube ('+(e.code||'?')+')',em(e))}))}
+else apply(c,s)},e=>{console.error(e);sy('⚠️ Error de la nube ('+(e.code||'?')+')',em(e))}))}
 function first(snaps){const cloudHas=snaps.cfg.docs.some(d=>d.id=='meta'),localHas=db.moves.length||db.sales.length||db.exp.length||db.combos.length||db.products.length>7,dirty=localStorage.getItem('verdu_dirty')=='1';
 const fromCloud=()=>{COLS.forEach(c=>apply(c,snaps[c],1));bizFrom(snaps.cfg)},
 mark=()=>{COLS.forEach(c=>{sh[c]={};snaps[c].docs.forEach(d=>sh[c][d.id]=JSON.stringify(d.data()))});const b=snaps.cfg.docs.find(d=>d.id=='biz');shBiz=b?JSON.stringify(b.data()):''},
 /* hay cambios hechos en este celular que todavía no llegaron a la nube: se unen con lo de la nube (no se pierde nada de ninguno) */
 merge=()=>{mark();COLS.forEach(c=>{const m={};snaps[c].docs.forEach(d=>m[d.id]=d.data());db[c].forEach(x=>{if(c=='products'||c=='combos'||!(x.id in m))m[x.id]=x});db[c]=Object.values(m)});db.products.sort(srt)};
-if(!cloudHas){mark();live=true;F.setDoc(dc('cfg','meta'),{at:Date.now()});cloudSave()}
+if(!cloudHas){mark();live=true;pend++;F.setDoc(dc('cfg','meta'),{at:Date.now()}).then(()=>{pend--;online=true;status()}).catch(e=>{pend--;sy('⚠️ Error al guardar en la nube',em(e))});cloudSave()}
 else if(localHas&&localStorage.getItem('verdu_synced')!=code){
  if(confirm('Este celular tiene datos propios y la nube también.\n\nAceptar = usar los datos de la NUBE (se pierden los de este celular)\nCancelar = SUBIR los de este celular (reemplazan a los de la nube)')){localStorage.setItem('verdu_backup',JSON.stringify(db));fromCloud();live=true}
  else{mark();live=true;cloudSave()}}
 else if(dirty){merge();live=true;cloudSave()}
 else{fromCloud();live=true}
-window.cloudLive=true;localStorage.setItem('verdu_synced',code);localStore();refresh();status(snaps)}
+window.cloudLive=true;t0=Date.now();localStorage.setItem('verdu_synced',code);localStore();refresh();status();connWatch()}
 function apply(c,s,quiet){if(c=='cfg')bizFrom(s);else{db[c]=s.docs.map(d=>d.data());sh[c]={};db[c].forEach(x=>sh[c][x.id]=JSON.stringify(x));if(c=='products')db.products.sort(srt)}if(!quiet){localStore();refresh()}}
 window.cloudSave=()=>{if(!live)return;const ops=[];COLS.forEach(c=>{const cur={};db[c].forEach(x=>cur[x.id]=JSON.stringify(x));
 for(const i in cur)if(sh[c][i]!==cur[i]){ops.push([c,i,JSON.parse(cur[i])]);sh[c][i]=cur[i]}
 for(const i in sh[c])if(!(i in cur)){ops.push([c,i,null]);delete sh[c][i]}});
 const b=JSON.stringify(db.biz);if(b!==shBiz){ops.push(['cfg','biz',JSON.parse(b)]);shBiz=b}
-for(let k=0;k<ops.length;k+=400){const w=F.writeBatch(fs);ops.slice(k,k+400).forEach(([c,i,v])=>v?w.set(dc(c,i),v):w.delete(dc(c,i)));w.commit().catch(e=>{console.error(e);sy('⚠️ Error al guardar en la nube',em(e))})}
+for(let k=0;k<ops.length;k+=400){const w=F.writeBatch(fs);ops.slice(k,k+400).forEach(([c,i,v])=>v?w.set(dc(c,i),v):w.delete(dc(c,i)));pend++;w.commit().then(()=>{pend--;online=true;status()}).catch(e=>{pend--;console.error(e);sy('⚠️ Error al guardar en la nube',em(e))})}
+if(ops.length)status()
 localStorage.removeItem('verdu_dirty')};
 </script>
 </body></html>

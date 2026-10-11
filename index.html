@@ -266,7 +266,10 @@ col=c=>F.collection(fs,'profiles',code,c),dc=(c,i)=>F.doc(fs,'profiles',code,c,i
  setTimeout(()=>{if(!live&&window.cloudState=='☁️ conectando…')sy('⚠️ No logra conectar. Revisá internet y desactivá bloqueadores de anuncios para este sitio.',window.cloudDetail)},20000)
 })();
 function bizFrom(s){const b=s.docs.find(d=>d.id=='biz');if(b){db.biz=bizFix(Object.assign({...BIZ0},b.data()));shBiz=JSON.stringify(db.biz)}}
-function status(snaps){const p=[...COLS,'cfg'].some(c=>snaps[c]&&snaps[c].metadata.hasPendingWrites);sy(p?'⏳ guardando…':'☁️ al día')}
+let stuck=false,stuckT=null;
+function status(snaps){const all=[...COLS,'cfg'].map(c=>snaps[c]).filter(Boolean),p=all.some(s=>s.metadata.hasPendingWrites),off=all.length>0&&all.every(s=>s.metadata.fromCache);
+ if(p){if(stuck)sy('⚠️ No logra enviar los cambios a la nube. Revisá la conexión, cerrá otras pestañas de la app y desactivá bloqueadores de anuncios.','Hay cambios guardados en este equipo que el servidor todavía no confirmó');else{sy('⏳ guardando…');if(!stuckT)stuckT=setTimeout(()=>{stuckT=null;stuck=true;if(window.cloudState=='⏳ guardando…')sy('⚠️ No logra enviar los cambios a la nube. Revisá la conexión, cerrá otras pestañas de la app y desactivá bloqueadores de anuncios.','Hay cambios guardados en este equipo que el servidor todavía no confirmó')},15000)}}
+ else{stuck=false;if(stuckT){clearTimeout(stuckT);stuckT=null}sy(off?'☁️ Sin conexión: se guarda en este equipo y se envía cuando vuelva':'☁️ al día')}}
 function start(){const snaps={},seen={};
 [...COLS,'cfg'].forEach(c=>F.onSnapshot(col(c),s=>{snaps[c]=s;
 if(!live){if(c=='cfg'&&s.metadata.fromCache&&!s.docs.some(d=>d.id=='meta'))return;seen[c]=1;if(Object.keys(seen).length==6)first(snaps)}

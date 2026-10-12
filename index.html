@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="El Rayado">
-<meta name="theme-color" content="#1b5e20"><meta name="app-version" content="2026.10.12-3"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" id="ati" href="icon.svg">
+<meta name="theme-color" content="#1b5e20"><meta name="app-version" content="2026.10.12-5"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" id="ati" href="icon.svg">
 <title>Verdulería El Rayado</title>
 <style>
 :root{--g:#1b5e20;--g2:#2e7d32;--r:#c62828;--o:#e65100}
@@ -202,8 +202,22 @@ return{n:o.name.toUpperCase(),nm:o.name,v,num:g(v).slice(4),u:t=='p'?PER[o.unit]
 const[w,h]={wa:[1080,1920],ig:[1080,1350],fb:[1080,1350]}[$('#fm').value],m=Math.min(w,h),{cv,x,B,sh,nsh,fit,strike,fy}=chrome(w,h,$('#hd').value.toUpperCase());
 const anyC=it.some(i=>i.sp),sdate=it.filter(i=>i.sp&&i.sd).map(i=>i.sd).sort()[0],srcH=anyC?m*.045:0,T0=m*.38,A=fy-m*.02-srcH-T0,n=it.length;
 if(anyC){x.textAlign='center';x.fillStyle='rgba(255,255,255,.92)';const st='Precios del súper: Comprador Digital (comprador.digital)'+(sdate?' · '+dmy(sdate):'');fit(st,m*.027,w*.92);x.fillText(st,w/2,fy-m*.017)}
-const band=i=>{const cy2=fy-m*.02-srcH-m*.14,ch=m*.13;x.fillStyle='#fff';sh('rgba(0,0,0,.4)',m*.015);rp(x,w*.06,cy2,w*.88,ch,m*.03);x.fill();nsh();x.textAlign='left';x.fillStyle='#37474f';x.font=B(m*.032);x.fillText('EN EL SÚPER',w*.09,cy2+ch*.38);strike(g(i.sp),w*.09,cy2+ch*.8,m*.06,'#c62828','left');x.fillStyle='#2e7d32';rp(x,w*.58,cy2+ch*.12,w*.33,ch*.76,ch*.2);x.fill();x.fillStyle='#fff';x.textAlign='center';fit('AHORRÁS '+i.pc+'%',m*.065,w*.3);x.fillText('AHORRÁS '+i.pc+'%',w*.745,cy2+ch*.62)};
-if(n==1&&it[0].cont&&it[0].cont.length){const i=it[0];let z=m*.09;x.font=B(z);let L=wrapT(x,i.n,w*.88);while(L.length>2&&z>20){z*=.9;x.font=B(z);L=wrapT(x,i.n,w*.88)}
+const band=i=>{const ch=m*.145,cy2=fy-m*.02-srcH-m*.155;x.fillStyle='#fff';sh('rgba(0,0,0,.4)',m*.015);rp(x,w*.06,cy2,w*.88,ch,m*.03);x.fill();nsh();x.textAlign='left';x.fillStyle='#37474f';x.font=B(m*.03);x.fillText('EN EL SÚPER',w*.09,cy2+ch*.3);strike(g(i.sp),w*.09,cy2+ch*.84,m*.055,'#c62828','left');x.fillStyle='#2e7d32';rp(x,w*.58,cy2+ch*.12,w*.33,ch*.76,ch*.2);x.fill();x.fillStyle='#fff';x.textAlign='center';fit('AHORRÁS '+i.pc+'%',m*.065,w*.3);x.fillText('AHORRÁS '+i.pc+'%',w*.745,cy2+ch*.62)};
+if(n==1&&it[0].cont&&it[0].cont.length>7){const i=it[0],cl=i.cont.length>24?[...i.cont.slice(0,23),{n:'y '+(i.cont.length-23)+' más',q:''}]:i.cont,nl=cl.length;
+ let z=m*.075;x.font=B(z);let L=wrapT(x,i.n,w*.9);while(L.length>1&&z>m*.05){z*=.94;x.font=B(z);L=wrapT(x,i.n,w*.9)}while(L.length>2&&z>20){z*=.9;x.font=B(z);L=wrapT(x,i.n,w*.9)}
+ x.textAlign='center';x.fillStyle='#fff';sh('rgba(0,0,0,.6)',m*.015);L.forEach((l,k)=>x.fillText(l,w/2,T0+m*.01+z*.85+k*z*1.05));nsh();
+ const nameB=T0+m*.01+L.length*z*1.05+m*.025,bandH=0,barH=i.sp?m*.16:m*.105,gap=m*.025,pad=m*.025,availH=T0+A-nameB-bandH-barH-gap*2,
+ AB={unidades:'un.',unidad:'un.',cabezas:'cab.',cabeza:'cab.',docenas:'doc.',docena:'doc.',atados:'at.',atado:'at.',mazos:'maz.',mazo:'maz.',bolsas:'bol.',bolsa:'bol.',cajas:'caj.',cajones:'caj.'};
+ const cols=(availH-pad*2)/(nl*1.38)>=m*.04?1:2,rows=Math.ceil(nl/cols),cwid=w*.9,cx0=w*.05,colW=(cwid-pad*2-(cols-1)*pad)/cols,tx=c=>cols==2?{n:c.n,q:c.q.replace(/(\S+)$/,u=>AB[u]||u)}:c;
+ let lz=Math.min(m*.058,(availH-pad*2)/(rows*1.38));const fitsW=()=>!cl.some(c=>{const t=tx(c);x.font=B(lz);return x.measureText(t.n).width+x.measureText(t.q).width+lz*.8>colW});while(lz>12&&!fitsW())lz*=.95;
+ const chH=rows*lz*1.38+pad*2,cy0=nameB+Math.max(0,(availH-chH)/2);
+ x.fillStyle='rgba(255,255,255,.96)';sh('rgba(0,0,0,.4)',m*.015);rp(x,cx0,cy0,cwid,chH,m*.03);x.fill();nsh();
+ cl.forEach((c,k)=>{const col=Math.floor(k/rows),r=k%rows,xb=cx0+pad+col*(colW+pad),yy=cy0+pad+lz*1.38*r+lz*1.02,t=tx(c);x.font=B(lz);x.textAlign='left';x.fillStyle='#10321a';x.fillText(t.n,xb,yy);x.textAlign='right';x.fillStyle='#d50000';x.fillText(t.q,xb+colW,yy)});
+ const by=cy0+chH+gap;x.fillStyle='#d50000';sh('rgba(0,0,0,.45)',m*.015);rp(x,cx0,by,cwid,barH,i.sp?m*.04:barH/2);x.fill();nsh();
+ if(i.sp){const p0=barH*.4;x.textAlign='left';x.fillStyle='#ffeb3b';x.font=B(barH*.19);x.fillText('COMBO',cx0+p0*.6,by+barH*.3);x.fillStyle='#fff';fit('Gs. '+i.num,barH*.46,cwid*.46);x.fillText('Gs. '+i.num,cx0+p0*.6,by+barH*.8);
+  strike('SÚPER '+g(i.sp),cx0+cwid-p0*.6,by+barH*.37,barH*.2,'#fff','right');const pw=cwid*.37,ph2=barH*.34,px=cx0+cwid-p0*.6-pw,py=by+barH*.5;x.fillStyle='#2e7d32';rp(x,px,py,pw,ph2,ph2/2);x.fill();x.fillStyle='#fff';x.textAlign='center';fit('AHORRÁS '+i.pc+'%',ph2*.62,pw*.9);x.fillText('AHORRÁS '+i.pc+'%',px+pw/2,py+ph2*.7)}
+ else{x.textAlign='left';x.fillStyle='#ffeb3b';x.font=B(barH*.34);x.fillText('COMBO',cx0+barH*.45,by+barH*.64);x.textAlign='right';x.fillStyle='#fff';fit('Gs. '+i.num,barH*.62,cwid*.6);x.fillText('Gs. '+i.num,cx0+cwid-barH*.45,by+barH*.7)}}
+else if(n==1&&it[0].cont&&it[0].cont.length){const i=it[0];let z=m*.09;x.font=B(z);let L=wrapT(x,i.n,w*.88);while(L.length>2&&z>20){z*=.9;x.font=B(z);L=wrapT(x,i.n,w*.88)}
  x.textAlign='center';x.fillStyle='#fff';sh('rgba(0,0,0,.6)',m*.015);L.forEach((l,k)=>x.fillText(l,w/2,T0+m*.01+z*.85+k*z*1.05));nsh();
  const nameB=T0+m*.01+L.length*z*1.05+m*.03,rest=T0+A-nameB-(i.sp?m*.15:0),cl=i.cont.length>8?[...i.cont.slice(0,7),{n:'y '+(i.cont.length-7)+' más',q:''}]:i.cont,stack=h>w*1.5,cwid=stack?w*.9:w*.62,cx0=stack?w*.05:w*.04,pad=m*.03,nl=cl.length;
  let lz=m*(stack?.075:.07);const fitsW=()=>!cl.some(c=>{x.font=B(lz);return x.measureText(c.n).width+x.measureText(c.q).width+lz*.8>cwid-pad*2});while(lz>12&&!fitsW())lz*=.95;
@@ -224,7 +238,7 @@ else if(n==1){const i=it[0],hasI=!!i.im,r=Math.min(w*.29,A*(i.sp?.3:.34));let y=
  const bR=hasI?R*.92:R;star(x,cx,hasI?cy:py+R,bR*1.08,bR*.9,16);x.fillStyle='#d50000';sh('rgba(0,0,0,.5)',m*.02);x.fill();nsh();x.lineWidth=m*.008;x.strokeStyle='#fff';x.stroke();
  const yy=hasI?cy:py+R;x.fillStyle='#ffeb3b';x.font=B(bR*.2);x.fillText('Gs.',cx,yy-bR*.42);const nz=fit(i.num,bR*.52,bR*1.5);x.fillStyle='#fff';x.fillText(i.num,cx,yy+nz*.28);x.fillStyle='#ffeb3b';x.font=B(bR*.2);x.fillText(i.u,cx,yy+bR*.62);
  if(i.sp)band(i)}
-else{const wts=it.map(i=>i.cont&&i.cont.length?1.3+.12*Math.min(i.cont.length,8):1),sw=wts.reduce((a,b)=>a+b,0),u0=Math.min(A/sw,m*(n<=3?.36:.25)),y0=T0+(A-u0*sw)/2;it.forEach((i,k)=>{const rh=u0*wts[k],y=y0+wts.slice(0,k).reduce((a,b)=>a+b,0)*u0,ph=rh*.88,top=y+rh*.06,cx0=m*.05,cw=w-m*.1;x.fillStyle='#fff';sh('rgba(0,0,0,.4)',m*.014);rp(x,cx0,top,cw,ph,rh*.16);x.fill();nsh();
+else{const wts=it.map(i=>i.cont&&i.cont.length?(i.cont.length>7?1.6:1.3+.12*i.cont.length):1),sw=wts.reduce((a,b)=>a+b,0),u0=Math.min(A/sw,m*(n<=3?.36:.25)),y0=T0+(A-u0*sw)/2;it.forEach((i,k)=>{const rh=u0*wts[k],y=y0+wts.slice(0,k).reduce((a,b)=>a+b,0)*u0,ph=rh*.88,top=y+rh*.06,cx0=m*.05,cw=w-m*.1;x.fillStyle='#fff';sh('rgba(0,0,0,.4)',m*.014);rp(x,cx0,top,cw,ph,rh*.16);x.fill();nsh();
  x.fillStyle='#2e7d32';rp(x,cx0,top,rh*.09,ph,rh*.04);x.fill();
  const r=ph*.34,pcx=cx0+rh*.16+r;if(i.im)circ(x,i.im,pcx,top+ph/2,r,rh*.02);
  const tx=i.im?pcx+r+rh*.1:cx0+rh*.22,tgW=m*.27,gx=cx0+cw-tgW-rh*.1,mw=gx-tx-rh*.1,th0=i.sp?top+ph*.08:top+ph*.16,thh=i.sp?ph*.56:ph*.68;
@@ -233,11 +247,12 @@ else{const wts=it.map(i=>i.cont&&i.cont.length?1.3+.12*Math.min(i.cont.length,8)
  if(i.sp){const py=top+ph*.68,pH=ph*.24;x.fillStyle='#2e7d32';rp(x,gx,py,tgW,pH,pH/2);x.fill();x.fillStyle='#fff';fit('AHORRÁS '+i.pc+'%',pH*.6,tgW*.9);x.fillText('AHORRÁS '+i.pc+'%',gx+tgW/2,py+pH*.68)}
  /* nombre (hasta 2 líneas) y precio del súper */
  const hasC=i.cont&&i.cont.length,lay=f=>{let z=Math.min(ph*(hasC?.22:.27),m*.06)*f,L;x.font=B(z);L=wrapT(x,i.n,mw);while((L.length>2||L.some(l=>x.measureText(l).width>mw))&&z>12){z*=.93;x.font=B(z);L=wrapT(x,i.n,mw)}
- let CL=[],cz=0;if(hasC){cz=Math.min(ph*.19,m*.042)*f;const txt=i.cont.map(c=>c.n+' '+c.q).join(' · ');x.font=B(cz);CL=wrapT(x,txt,mw);while(CL.length>4&&cz>10){cz*=.93;x.font=B(cz);CL=wrapT(x,txt,mw)}}
+ let CL=[],cz=0;if(hasC){cz=Math.min(ph*.19,m*.042)*f;const txt=i.cont.length>7?i.cont.slice(0,5).map(c=>c.n).join(' · ')+' · y '+(i.cont.length-5)+' más':i.cont.map(c=>c.n+' '+c.q).join(' · ');x.font=B(cz);CL=wrapT(x,txt,mw);while(CL.length>4&&cz>10){cz*=.93;x.font=B(cz);CL=wrapT(x,txt,mw)}}
  const z2=Math.min(ph*.16*f,z*.75);return{z,L,cz,CL,z2,bh:L.length*z*1.06+(hasC?CL.length*cz*1.2+cz*.35:0)+(i.sp?z2*1.5:0)}};
  let ff=1,R=lay(1);while(R.bh>ph*.88&&ff>.35){ff*=.92;R=lay(ff)}const{z,L,cz,CL,z2,bh}=R;let ty=top+ph/2-bh/2+z*.85;x.textAlign='left';x.fillStyle='#10321a';x.font=B(z);L.forEach((l,q2)=>x.fillText(l,tx,ty+q2*z*1.06));
  if(hasC){x.font=B(cz);x.fillStyle='#3b5e3f';CL.forEach((l,q2)=>x.fillText(l,tx,ty+L.length*z*1.06+cz*.35+q2*cz*1.2))}
  if(i.sp){const t1='SÚPER '+g(i.sp);let zz=z2;x.font=B(zz);while(x.measureText(t1).width>mw&&zz>10){zz*=.94;x.font=B(zz)}strike(t1,tx,(hasC?ty+L.length*z*1.06+cz*.35+(CL.length-1)*cz*1.2:ty+(L.length-1)*z*1.06)+z2*1.55,zz,'#c62828','left')}})}
+if(n>1&&it.some(i=>i.cont&&i.cont.length>7))toast('Tip: un combo largo se ve completo si lo publicás solo, sin otros productos.',5500);
 const cap=[$('#hd').value.toUpperCase(),'',...it.map(i=>'• '+i.nm+': '+g(i.v)+(i.u?' '+i.u:'')+(i.sp?' (en el súper '+g(i.sp)+', ahorrás '+i.pc+'%)':'')+(i.cont&&i.cont.length?'\n'+i.cont.map(c=>'   – '+c.n+' '+c.q).join('\n'):'')),'',...(anyC?['Precios del súper según Comprador Digital (https://comprador.digital)'+(sdate?' al '+dmy(sdate):''),'']:[]),...(db.biz.slogan?[db.biz.name+' — '+db.biz.slogan]:[]),db.biz.wa?'Pedidos por WhatsApp: '+db.biz.wa:'Pedidos por WhatsApp'].join('\n');
 CVS=[cv];if(SHOT)CVS.push(mkShot(SHOT,w,h));const url=cv.toDataURL('image/png'),url2=SHOT?CVS[1].toDataURL('image/png'):'';$('#out').innerHTML=`<img src="${url}" style="width:100%;border-radius:12px;margin-bottom:12px"><button class=btn onclick="shr()">📤 COMPARTIR</button>${SHOT?`<img src="${url2}" style="width:100%;border-radius:12px;margin-bottom:12px">`:''}<a class="btn w" download="publicacion-1.png" href="${url}">⬇️ DESCARGAR${SHOT?' IMAGEN 1':''}</a>${SHOT?`<a class="btn w" download="publicacion-2.png" href="${url2}">⬇️ DESCARGAR IMAGEN 2</a>`:''}<small>Si no baja, mantené apretada la imagen y tocá "Guardar".</small><label style="margin-top:14px">Texto para pegar en la publicación</label><textarea id=cap rows=7 style="width:100%;font-size:18px;padding:10px;border:2px solid #555;border-radius:12px">${esc(cap)}</textarea><button class="btn w" onclick="copyCap()">📋 COPIAR TEXTO</button>`}
 function mkShot(im,w,h){const{cv,x,sh,nsh,fit,fy,m,T0}=chrome(w,h,''),bot=fy-m*.075,fw=w*.88,fh=bot-T0,k=Math.min(fw/im.width,fh/im.height),iw=im.width*k,ih=im.height*k,ix=(w-iw)/2,iy=T0+(fh-ih)/2,pd=m*.012;

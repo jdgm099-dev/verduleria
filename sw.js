@@ -1,4 +1,4 @@
-const V='verdu-v9',F=['./','index.html','manifest.json','icon.svg','icon-192.png','icon-512.png','config.js'];
+const V='verdu-v10',F=['./','index.html','manifest.json','icon.svg','icon-192.png','icon-512.png','santo-decor.webp','config.js'];
 self.addEventListener('install',e=>e.waitUntil(caches.open(V).then(c=>c.addAll(F)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!=V).map(x=>caches.delete(x)))).then(()=>self.clients.claim())));
 /* Archivos de Firebase (versión fija): primero la copia guardada, así cargan aunque no haya internet y nunca dependen de la red del SW.

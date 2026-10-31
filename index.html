@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="El Rayado">
-<meta name="theme-color" content="#1b5e20"><meta name="app-version" content="2026.10.27-13"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" id="ati" href="icon.svg">
+<meta name="theme-color" content="#1b5e20"><meta name="app-version" content="2026.10.28-15"><link rel="icon" href="icon-192.png"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" id="ati" href="icon.svg">
 <title>Verdulería El Rayado</title>
 <style>
 :root{--g:#1b5e20;--g2:#2e7d32;--r:#c62828;--o:#e65100}
@@ -117,9 +117,10 @@ stock:()=>['📦 Stock',(db.moves.length?'':'<div class=c style="border-color:va
 prod:a=>{const p=P(a.id),m=db.moves.filter(x=>x.pid==p.id).sort((a,b)=>b.t-a.t),G={},L=x=>x.k=='compra'?'Compra':x.k=='venta'?'Venta':x.why;
 m.forEach(x=>G[L(x)]=(G[L(x)]||0)+x.q);
 return[p.name,`<div class=c>Stock actual<div class=big>${qu(st(p.id),p.unit)}</div><small>Costo ${g(p.cost)} · Precio de venta ${g(p.price)} (por ${p.unit})</small></div>
-<button class=btn onclick="go('mov',{id:'${p.id}',k:'compra'})">➕ ENTRADA<small style="display:block;font-weight:400;font-size:16px">Compré mercadería</small></button><button class="btn r" onclick="go('mov',{id:'${p.id}',k:'perdida'})">⚠️ PÉRDIDA<small style="display:block;font-weight:400;font-size:16px">Se echó a perder, lo consumí o lo regalé</small></button>
+<button class=btn onclick="go('mov',{id:'${p.id}',k:'compra'})">➕ ENTRADA<small style="display:block;font-weight:400;font-size:16px">Compré mercadería</small></button><button class="btn r" onclick="go('mov',{id:'${p.id}',k:'perdida'})">⚠️ PÉRDIDA<small style="display:block;font-weight:400;font-size:16px">Se echó a perder, lo consumí o lo regalé</small></button><button class="btn w" onclick="go('cnt',{id:'${p.id}'})">🔢 CONTAR LO QUE TENGO<small style="display:block;font-weight:400;font-size:16px">La app corrige la diferencia</small></button>
 <div class=c><b>Resumen</b>${Object.keys(G).map(l=>`<div class=row><span>${l}</span><b>${G[l]>0?'+':''}${qu(G[l],p.unit)}</b></div>`).join('')||'<div>Sin movimientos</div>'}</div>
 <div class=c><b>Movimientos</b> <small>(tocá uno para corregirlo)</small>${m.slice(0,40).map(x=>`<div class=row onclick="go('mvd',{id:'${x.id}'})"><span>${x.q>0?'+':''}${qu(x.q,p.unit)} — ${L(x)}${x.bq&&x.bu!=p.unit?' ('+qu(x.bq,x.bu)+')':''}</span><small>${dmy(day(x.t))} ›</small></div>`).join('')}</div>`]},
+cnt:a=>{const p=P(a.id);return['🔢 Contar '+p.name,`<div class=c>La app cree que tenés<div class=big>${qu(st(p.id),p.unit)}</div></div><div class=c><label>¿Cuánto tenés de verdad? (${p.unit})</label><input id=q inputmode=decimal placeholder="0"><label>Si falta, ¿qué pasó?</label><select id=w><option>Merma<option>Consumo familiar<option>Producto dañado<option>Regalo<option>Otro</select><small>Si falta mercadería, se anota como pérdida a costo. Si tenés más de lo anotado, anotá la compra con ➕ ENTRADA.</small></div><button class=btn onclick="doCnt('${p.id}')">GUARDAR</button>`]},
 mov:a=>{const p=P(a.id),k=a.k,bu=p.bu||p.unit;return[{compra:'➕ Entrada',perdida:'⚠️ Pérdida'}[k]+' — '+p.name,`<div class=c>
 ${k=='compra'?`<label>Compré en</label><select id=bu onchange="mvu()">${[bu,...U.filter(u=>u!=bu)].map(u=>`<option ${u==bu?'selected':''}>${u}`).join('')}</select>`:''}
 <label id=lq>${cu(k=='compra'?bu:p.unit)}?</label><input id=q inputmode=decimal placeholder="0" oninput="cp()">${p.unit=='kg'?'<small>Medio kilo = 0,5 · tres cuartos = 0,75 (o escribí 3/4)</small>':''}
@@ -175,6 +176,7 @@ function doMov(pid,k){const p=P(pid),n=num($('#q').value);if(n<=0)return alert('
 if(k=='compra'){const t=mon($('#c').value),bu=$('#bu').value,f=bu==p.unit?1:num($('#f').value);if(t<=0)return alert('Escribí cuánto pagaste');if(f<=0)return alert('Escribí '+cu(p.unit).slice(1).toLowerCase()+' trae cada '+bu);const u=n*f,nc=newCost(p,u,t);db.moves.push({id:id(),pid,q:u,k,cost:t/u,bq:n,bu,t:Date.now()});p.cost=nc;p.bu=bu;p.f=f;reprice();save()}
 else{if(!ok({[pid]:n}))return;db.moves.push({id:id(),pid,q:-n,k,why:$('#w').value,cost:p.cost,t:Date.now()});save()}
 toast(k=='compra'?'✅ Guardado · Precio de venta ahora: '+g(p.price):'✅ Guardado',k=='compra'?3500:1600);back()}
+function doCnt(pid){const p=P(pid),v=$('#q').value.trim();if(v==='')return alert('Escribí cuánto tenés');const r=num(v),d=Math.round((st(pid)-r)*1000)/1000;if(d<0)return alert('Tenés más de lo anotado. Anotá la compra con ➕ ENTRADA.');if(d>0){db.moves.push({id:id(),pid,q:-d,k:'perdida',why:$('#w').value,cost:p.cost,t:Date.now()});save()}toast(d>0?'✅ Corregido: '+qu(d,p.unit)+' menos':'✅ Ya coincidía',2200);back()}
 function doMvEdit(i){const m=db.moves.find(x=>x.id==i),p=P(m.pid),n=num($('#q').value);if(n<=0)return alert('Escribí la cantidad');
 if(m.k=='compra'){const t=mon($('#c').value);if(t<=0)return alert('Escribí cuánto pagaste');m.q=n;m.cost=t/n;delete m.bq;delete m.bu}else{m.q=-n;m.why=$('#w').value}
 recost(p);reprice();save();toast('✅ Corregido');back()}
